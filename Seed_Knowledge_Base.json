@@ -1,0 +1,228 @@
+{
+  "name": "Seed Knowledge Base",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "3d9830c8-6de9-4fe0-a5f1-7316c0123ac1",
+      "name": "Seed KB Manual Trigger"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cef7a4d6-e49b-4502-b233-19aaa74a3d43",
+              "name": "chunks",
+              "value": "[   {     \"title\": \"Returns — Standard Window\",     \"category\": \"returns\",     \"content\": \"Items can be returned within 30 days of delivery for a full refund, provided they are unused and in original packaging. Refunds are issued to the original payment method within 5-7 business days of receiving the returned item.\"   },   {     \"title\": \"Returns — Opened or Used Items\",     \"category\": \"returns\",     \"content\": \"Opened or used items may be eligible for a partial refund or store credit at our discretion, depending on the condition of the item. Contact support with photos of the item's condition to request a return in this case.\"   },   {     \"title\": \"Shipping — Delivery Windows\",     \"category\": \"shipping\",     \"content\": \"Standard shipping typically takes 5-7 business days within the continental US. Expedited shipping (2-3 business days) is available at checkout for an additional fee. Delivery times may be longer during peak holiday periods.\"   },   {     \"title\": \"Shipping — Lost or Delayed Packages\",     \"category\": \"shipping\",     \"content\": \"If a package has not arrived within 3 business days of its expected delivery date, customers should contact support with their order number so we can investigate with the carrier. A replacement or refund will be issued if the package is confirmed lost.\"   },   {     \"title\": \"Billing — Duplicate Charges\",     \"category\": \"billing\",     \"content\": \"Duplicate charges are usually the result of a temporary authorization hold and typically resolve within 3-5 business days. If a duplicate charge has not resolved after 5 business days, contact support with the transaction dates for a manual review.\"   },   {     \"title\": \"Billing — Subscription Cancellations\",     \"category\": \"billing\",     \"content\": \"Subscriptions can be canceled at any time from the account settings page and will remain active until the end of the current billing cycle. No partial refunds are issued for the remaining days in a cancelled billing cycle.\"   } ]",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "52cf1d1c-ff38-4337-b75b-f4daf86b7781",
+      "name": "Define FAQ Chunks"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "chunks",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        448,
+        0
+      ],
+      "id": "dd239c50-35d0-4b9f-8a2b-c8d1310fefa9",
+      "name": "Split Chunks Into Items"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/embeddings",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"text-embedding-3-small\",\n  \"input\": \"{{ $json.content }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        672,
+        0
+      ],
+      "id": "d9ef65b7-9dbb-48b3-b839-c62916009548",
+      "name": "Generate Chunk Embedding"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "kb_documents",
+          "mode": "list",
+          "cachedResultName": "kb_documents"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "title": "={{ $('Split Chunks Into Items').item.json.title }}",
+            "content": "={{ $('Split Chunks Into Items').item.json.content }}",
+            "category": "={{ $('Split Chunks Into Items').item.json.category }}",
+            "embedding": "={{ $json.data[0].embedding }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "embedding",
+              "displayName": "embedding",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        896,
+        0
+      ],
+      "id": "405836cd-6d2a-459c-8242-7e241732945c",
+      "name": "Insert KB Chunk"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Seed KB Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Define FAQ Chunks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Define FAQ Chunks": {
+      "main": [
+        [
+          {
+            "node": "Split Chunks Into Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Chunks Into Items": {
+      "main": [
+        [
+          {
+            "node": "Generate Chunk Embedding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Chunk Embedding": {
+      "main": [
+        [
+          {
+            "node": "Insert KB Chunk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6bc2a0bb-627d-4b1a-96fd-a2c2400b0937",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "YOUR_N8N_INSTANCE_ID"
+  },
+  "nodeGroups": [],
+  "id": "frDir8qz18Mhum5k",
+  "tags": []
+}

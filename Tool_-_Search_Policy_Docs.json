@@ -1,0 +1,125 @@
+{
+  "name": "Tool - Search Policy Docs",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/embeddings",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"text-embedding-3-small\",\n  \"input\": \"{{ $json.query }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        240,
+        0
+      ],
+      "id": "e7113cb3-8260-40b4-80fe-ae15abd48548",
+      "name": "Embed Search Query"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT title, content, category, embedding <=> $1::vector AS distance\nFROM kb_documents\nWHERE embedding <=> $1::vector < 0.8\nORDER BY distance ASC\nLIMIT 3;",
+        "options": {
+          "queryReplacement": "={{ JSON.stringify($json.data[0].embedding) }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        448,
+        0
+      ],
+      "id": "089e4f0c-1458-41d5-9a1e-e413e2f6f08b",
+      "name": "Search Similar KB Chunks",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "0004aeb0-aa63-42f2-8c74-7bdb479f5aaf",
+      "name": "Receive Search Query",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst realMatches = items.filter(item => item.json.content);\n\nif (realMatches.length === 0) {\n  return [\n    {\n      json: {\n        result: \"No matching policy documents found for this query.\"\n      }\n    }\n  ];\n}\n\nconst summary = realMatches\n  .map(item => `${item.json.title}: ${item.json.content}`)\n  .join(\"\\n\\n\");\n\nreturn [\n  {\n    json: {\n      result: summary\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        0
+      ],
+      "id": "d61a8667-6e81-4938-8e8b-ce79cd9bc2f8",
+      "name": "Format Search Results"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Embed Search Query": {
+      "main": [
+        [
+          {
+            "node": "Search Similar KB Chunks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receive Search Query": {
+      "main": [
+        [
+          {
+            "node": "Embed Search Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Similar KB Chunks": {
+      "main": [
+        [
+          {
+            "node": "Format Search Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "2d7527f9-6f4b-46d8-b31f-e6eaeafd91ef",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "YOUR_N8N_INSTANCE_ID"
+  },
+  "nodeGroups": [],
+  "id": "A5r2vBRCDTy0yoFK",
+  "tags": []
+}

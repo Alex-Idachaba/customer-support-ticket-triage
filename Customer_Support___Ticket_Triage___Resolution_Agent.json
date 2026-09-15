@@ -1,0 +1,1310 @@
+{
+  "name": "Customer Support / Ticket Triage & Resolution Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "25d12438-16dc-4871-8a18-0dfc98bd5000",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "80ea1f6c-9b5d-40ed-b481-dc081b374d1d",
+      "name": "New Support Ticket Trigger",
+      "webhookId": "25d12438-16dc-4871-8a18-0dfc98bd5000"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cd62ecdf-f410-4080-954e-2686b070fc0e",
+              "leftValue": "={{ $json.body.external_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "18243d65-255d-4472-88b8-06469ab714f4",
+              "leftValue": "={{ $json.body.customer_email }}",
+              "rightValue": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            },
+            {
+              "id": "96e3647a-899d-4dc6-9f2d-3c639cfe3660",
+              "leftValue": "={{ $json.body.subject }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "749a5b79-9558-4c85-9ee4-9aa5c8a034d6",
+              "leftValue": "={{ $json.body.body }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        0
+      ],
+      "id": "097fa7a4-bc0f-40e0-90db-947fb8ecd891",
+      "name": "Validate Ticket Fields"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tickets",
+          "mode": "list",
+          "cachedResultName": "tickets"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "escalated": false,
+            "external_id": "={{ $json.body.external_id }}",
+            "subject": "={{ $json.body.subject }}",
+            "body": "={{ $json.body.body }}",
+            "customer_email": "={{ $json.body.customer_email }}",
+            "status": "new",
+            "created_at": "={{ $now.toISO() }}",
+            "updated_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [
+            "external_id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "external_id",
+              "displayName": "external_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "sentiment",
+              "displayName": "sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "resolution",
+              "displayName": "resolution",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "escalated",
+              "displayName": "escalated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "customer_email",
+              "displayName": "customer_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "outputColumns": [
+            "*"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        448,
+        -96
+      ],
+      "id": "46ef69f8-2a4d-47ac-aaaa-4c3103643c1c",
+      "name": "Upsert Ticket Record"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tickets",
+          "mode": "list",
+          "cachedResultName": "tickets"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "escalated": false,
+            "external_id": "={{ $json.body.external_id || 'INVALID-' + $now.toMillis() }}",
+            "subject": "={{ $json.body.subject || '(no subject provided)' }}",
+            "body": "={{ $json.body.body }}",
+            "customer_email": "={{ $json.body.customer_email }}",
+            "status": "failed",
+            "created_at": "={{ $now.toISO() }}",
+            "updated_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "external_id",
+              "displayName": "external_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sentiment",
+              "displayName": "sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resolution",
+              "displayName": "resolution",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "escalated",
+              "displayName": "escalated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "customer_email",
+              "displayName": "customer_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "outputColumns": [
+            "*"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        448,
+        96
+      ],
+      "id": "4611ff9b-00ac-431e-8d68-a1250928c89d",
+      "name": "Insert Failed Ticket Record"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Ticket ID: {{ $json.id }}\nCustomer email: {{ $json.customer_email }}\nSubject: {{ $json.subject }}\nMessage: {{ $json.body }}",
+        "options": {
+          "systemMessage": "You are a customer support triage agent for an e-commerce business. \nFor each ticket, decide whether you can resolve it directly or whether it needs a human.\n\nYou have tools available to search company policy documents and look up order status. \nUse them whenever the ticket references a policy question or an order.\n\nResolve a ticket yourself whenever you can fully and confidently answer the customer's \nactual question — including questions about policies that happen to mention refunds or \ncompensation as general information. Escalate instead only when the customer is explicitly \nrequesting that a refund, compensation, or account change be performed for them.\n\nIf the knowledge base search returns no results, do not guess at policy or invent an \nanswer — treat an empty result as a signal that this ticket falls outside documented \npolicy, and either ask a clarifying question or escalate, rather than resolving it.\n\nIf an order lookup returns no results, do not assume or fabricate order details. Inform \nthe customer you could not locate that order and ask them to double-check the order \nnumber, or escalate if they insist it's correct.\n\nWhenever you provide a final answer that resolves the customer's question yourself, you \nmust call mark_ticket_resolved to record the resolution — a reply to the customer alone \nis not sufficient; the ticket must be marked resolved as well. If you determine a ticket \nneeds escalation instead, do not call mark_ticket_resolved.\n\nWrite only the body of the reply to the customer. Do not include a greeting, salutation, \nor closing sign-off (e.g. \"Hi [name],\" or \"Best regards\") — those will be added separately.",
+          "returnIntermediateSteps": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        672,
+        -96
+      ],
+      "id": "a0b41421-a86b-49e1-9ff4-288e1145d6ae",
+      "name": "Ticket Triage Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        672,
+        144
+      ],
+      "id": "b2779a63-5262-4666-bdcb-4d3ca439a2cb",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "description": "Searches company policy and FAQ documents for information relevant to the customer's question. Use this whenever the ticket references returns, shipping, or billing policy.",
+        "workflowId": {
+          "__rl": true,
+          "value": "A5r2vBRCDTy0yoFK",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/A5r2vBRCDTy0yoFK",
+          "cachedResultName": "Tool - Search Policy Docs"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "query": "={{ $fromAI('query', 'The search text to look up in the knowledge base, based on what the customer is asking about', 'string') }}"
+          },
+          "matchingColumns": [
+            "query"
+          ],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        848,
+        144
+      ],
+      "id": "8663a71a-2a1a-4b20-bdb3-14be3aeeff37",
+      "name": "search_policy_docs"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Looks up the current status and expected delivery date of a customer's order, given an order ID. Use this whenever a ticket references a specific order number.",
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "orders",
+          "mode": "list",
+          "cachedResultName": "orders"
+        },
+        "limit": 1,
+        "where": {
+          "values": [
+            {
+              "column": "=order_id",
+              "value": "={{ $fromAI('order_id', 'The order ID mentioned by the customer in their ticket, e.g. ORD-2001', 'string') }}"
+            }
+          ]
+        },
+        "sort": {
+          "values": []
+        },
+        "options": {
+          "outputColumns": [
+            "*"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.7,
+      "position": [
+        1136,
+        144
+      ],
+      "id": "5ae26469-d984-445c-8fb7-1637b086627c",
+      "name": "lookup_order_status",
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c7d5aaad-9afd-4dc1-a454-2a1fbdd5ce4d",
+              "name": "full_reply",
+              "value": "=Hi {{ $('Upsert Ticket Record').item.json.customer_email.split('@')[0] }},  \n{{ $json.output }}  \nBest regards, \nThe Support Team",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1264,
+        -256
+      ],
+      "id": "57fffa19-2465-478b-a1ac-6e12590a487d",
+      "name": "Compose Customer Reply"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Marks a ticket as resolved with a summary of the resolution, once you have fully answered \nthe customer's own question. Call this whenever you've provided a complete informational \nanswer — including policy explanations that mention refunds or store credit as general \ninformation. Do NOT call this if the customer is explicitly asking you to issue them a \nrefund, apply compensation, or change their account — those specific requests must be \nescalated to a human instead.",
+        "operation": "update",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tickets",
+          "mode": "list",
+          "cachedResultName": "tickets"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "escalated": false,
+            "id": "=    {{ $fromAI('ticket_id', 'The numeric database ID of the ticket being resolved, found in the ticket context provided', 'number') }}",
+            "status": "resolved",
+            "resolution": "=  {{ $fromAI('resolution', 'A brief summary of how this ticket was resolved, to be stored for record-keeping', 'string') }}",
+            "updated_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "external_id",
+              "displayName": "external_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sentiment",
+              "displayName": "sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resolution",
+              "displayName": "resolution",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "escalated",
+              "displayName": "escalated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "customer_email",
+              "displayName": "customer_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.7,
+      "position": [
+        992,
+        160
+      ],
+      "id": "2b4a7696-87f1-4cfc-b209-850461102ccc",
+      "name": "mark_ticket_resolved"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst agentOutput = items[0].json;\nconst steps = agentOutput.intermediateSteps || [];\n\nif (steps.length === 0) {\n  return [];\n}\n\nfunction toJsonbValue(value) {\n  let parsed = value;\n\n  if (typeof value === \"string\") {\n    try {\n      parsed = JSON.parse(value);\n    } catch (e) {\n      parsed = { text: value };\n    }\n  }\n\n  if (Array.isArray(parsed)) {\n    return { items: parsed };\n  }\n\n  if (typeof parsed !== \"object\" || parsed === null) {\n    return { value: parsed };\n  }\n\n  return parsed;\n}\n\nreturn steps.map(step => {\n  return {\n    json: {\n      tool_called: step.action.tool,\n      input: toJsonbValue(step.action.toolInput),\n      output: toJsonbValue(step.observation)\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        -96
+      ],
+      "id": "9823faef-bd9d-47dc-b65e-aa23b755dc9b",
+      "name": "Flatten Agent Actions"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "agent_actions",
+          "mode": "list",
+          "cachedResultName": "agent_actions"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "confidence": 0,
+            "tool_called": "={{ $json.tool_called }}",
+            "ticket_id": "={{ $('Upsert Ticket Record').item.json.id }}",
+            "input": "={{ $json.input }}",
+            "output": "={{ $json.output }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "ticket_id",
+              "displayName": "ticket_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "tool_called",
+              "displayName": "tool_called",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "output",
+              "displayName": "output",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "decision",
+              "displayName": "decision",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "confidence",
+              "displayName": "confidence",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        1264,
+        80
+      ],
+      "id": "3c137506-7949-4963-86b9-7ffc83f87bd8",
+      "name": "Log Agent Action"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "364b895f-2f58-4bbf-8476-c2bbd37497cd",
+              "leftValue": "={{ $json.was_resolved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1696,
+        -176
+      ],
+      "id": "48250e6c-cec8-4562-aac3-be08851ba211",
+      "name": "Check If Resolved"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst wasResolved = items.some(item => item.json.tool_called === \"mark_ticket_resolved\");\nconst actions = items.map(item => item.json);\n\nreturn [\n  {\n    json: {\n      was_resolved: wasResolved,\n      actions: actions\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1264,
+        -96
+      ],
+      "id": "9eaee21f-df19-4cee-8316-ea03344cd2fb",
+      "name": "Check Resolution Status"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1488,
+        -176
+      ],
+      "id": "3b4d2517-6df8-4b91-ae30-0a72378055cf",
+      "name": "Merge Reply and Resolution Status"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tickets",
+          "mode": "list",
+          "cachedResultName": "tickets"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "escalated": false,
+            "id": "={{ $('Upsert Ticket Record').item.json.id }}",
+            "status": "escalated",
+            "updated_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "external_id",
+              "displayName": "external_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sentiment",
+              "displayName": "sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resolution",
+              "displayName": "resolution",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "escalated",
+              "displayName": "escalated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "customer_email",
+              "displayName": "customer_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        1920,
+        -80
+      ],
+      "id": "c8549b3c-db68-4e7c-88fa-9ab67d0296e0",
+      "name": "Force Escalate Unresolved Ticket"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Upsert Ticket Record').item.json.customer_email }}",
+        "subject": "={{ 'Re: ' + $('Upsert Ticket Record').item.json.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.full_reply }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1920,
+        -272
+      ],
+      "id": "9b6a7d07-3d75-405b-9ccf-b122bb6cb0b1",
+      "name": "Send Reply to Customer",
+      "webhookId": "f3ade56d-0274-4b64-be5c-4568e581d5aa"
+    },
+    {
+      "parameters": {
+        "jsCode": "const ticketId = $('Upsert Ticket Record').item.json.id;\nconst externalId = $('Upsert Ticket Record').item.json.external_id;\nconst subject = $('Upsert Ticket Record').item.json.subject;\nconst customerEmail = $('Upsert Ticket Record').item.json.customer_email;\nconst customerMessage = $('Upsert Ticket Record').item.json.body;\nconst draftReply = $json.full_reply || \"(No reply was generated.)\";\nconst actions = $json.actions || [];\n\nfunction summarizeAction(action) {\n  if (action.tool_called === \"search_policy_docs\") {\n    return `Searched the knowledge base → ${JSON.stringify(action.output)}`;\n  }\n  if (action.tool_called === \"lookup_order_status\") {\n    return `Looked up an order → ${JSON.stringify(action.output)}`;\n  }\n  return `Called ${action.tool_called} → ${JSON.stringify(action.output)}`;\n}\n\nlet historyText = \"No tools were called before this ticket was escalated.\";\nif (actions.length > 0) {\n  historyText = actions.map(a => `• ${summarizeAction(a)}`).join(\"\\n\");\n}\n\nconst message = `🚨 *Action needed: please review this ticket*\n\nThis ticket could not be fully confirmed as resolved by the AI agent. A reply has \nalready been sent to the customer — please review it below and follow up directly \nif it looks incomplete, incorrect, or if this customer needs further attention.\n\n*Ticket:* ${externalId} (internal ID: ${ticketId})\n*Customer:* ${customerEmail}\n*Subject:* ${subject}\n\n*Customer's message:*\n${customerMessage}\n\n*What the Agent already sent the customer:*\n${draftReply}\n\n*What the Agent checked before responding:*\n${historyText}`;\n\nreturn [{ json: { slack_message: message } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        112
+      ],
+      "id": "1b7ebcc7-96ca-4f89-b381-d64a126875c7",
+      "name": "Format Escalation Alert"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "#support-escalations",
+          "mode": "name"
+        },
+        "text": "={{ $json.slack_message }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.7,
+      "position": [
+        2112,
+        112
+      ],
+      "id": "b8f2eb47-e58c-4b74-b6f3-d223837c3787",
+      "name": "Alert Human Support Agent",
+      "webhookId": "7a76a553-db0c-4efe-8f86-be4e122e1116"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "New Support Ticket Trigger": {
+      "main": [
+        [
+          {
+            "node": "Validate Ticket Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Ticket Fields": {
+      "main": [
+        [
+          {
+            "node": "Upsert Ticket Record",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert Failed Ticket Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Ticket Record": {
+      "main": [
+        [
+          {
+            "node": "Ticket Triage Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Ticket Triage Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "search_policy_docs": {
+      "ai_tool": [
+        [
+          {
+            "node": "Ticket Triage Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "lookup_order_status": {
+      "ai_tool": [
+        [
+          {
+            "node": "Ticket Triage Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ticket Triage Agent": {
+      "main": [
+        [
+          {
+            "node": "Flatten Agent Actions",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Compose Customer Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "mark_ticket_resolved": {
+      "ai_tool": [
+        [
+          {
+            "node": "Ticket Triage Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Flatten Agent Actions": {
+      "main": [
+        [
+          {
+            "node": "Check Resolution Status",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Agent Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Resolution Status": {
+      "main": [
+        [
+          {
+            "node": "Merge Reply and Resolution Status",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Compose Customer Reply": {
+      "main": [
+        [
+          {
+            "node": "Merge Reply and Resolution Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Reply and Resolution Status": {
+      "main": [
+        [
+          {
+            "node": "Check If Resolved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Resolved": {
+      "main": [
+        [
+          {
+            "node": "Send Reply to Customer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Force Escalate Unresolved Ticket",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Reply to Customer",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Format Escalation Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Escalation Alert": {
+      "main": [
+        [
+          {
+            "node": "Alert Human Support Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "f377da73-a0a3-4918-8f35-45e0275601aa",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "YOUR_N8N_INSTANCE_ID"
+  },
+  "nodeGroups": [],
+  "id": "P2WtqZgwctUGOh9V",
+  "tags": []
+}
