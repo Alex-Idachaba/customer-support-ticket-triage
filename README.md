@@ -1,29 +1,56 @@
-# Customer Support Ticket Triage and Resolution Agent
+# Support Ticket Triage & Resolution Agent
 
-**Pattern:** Retrieval-Augmented Generation (RAG)
+**Pattern:** Retrieval-Augmented Generation (RAG) · **Stack:** n8n, pgvector on Neon PostgreSQL, OpenAI · **Status:** Complete (tested with sample tickets and policy documents)
 
-A support ticket agent that answers policy-based questions automatically from the business's own documentation, and routes anything more complex to a human.
+Reads incoming requests, classifies them by type and urgency, answers routine ones from the business's own policy documents, and sends anything complex, sensitive, or uncertain to a person.
 
-## Problem
+**Property management application:** the foundation of maintenance request triage (sorting by urgency, escalating emergencies) and a tenant FAQ assistant (answering from lease terms and house rules).
 
-Support teams manually triage every incoming ticket, including the ones that are really just questions the business has already answered in a policy document somewhere. That triage work eats time that should go to tickets that actually need judgment.
+---
 
-## Build
+## The problem
 
-Policy documents are stored as embeddings in pgvector on Neon Postgres, making them searchable by meaning rather than exact keyword match. An OpenAI-powered triage agent reads each incoming ticket and classifies its type and urgency. For tickets that look policy-answerable, a sub-workflow searches the policy document store and pulls back relevant passages, which the agent uses to draft a response grounded in the business's actual documented policy rather than the model's general knowledge.
+Staff read and answer every incoming request by hand, including questions the business has already answered in a policy document a hundred times. That triage work takes time away from the requests that actually need judgment.
 
-## Outcome
+## How it works
 
-Routine, policy-answerable tickets get an accurate first-pass response without a human reading them first, while genuinely complex or sensitive tickets are flagged for a person immediately instead of sitting in a queue.
+Incoming ticket → triage agent classifies type and urgency → if policy-answerable: policy search sub-workflow retrieves relevant passages → agent drafts a grounded response; otherwise → route to a person
 
-## Reliability Notes
+- **Knowledge base:** policy documents are stored as embeddings in pgvector on Neon PostgreSQL, searchable by meaning rather than exact keywords.
+- **Triage:** an OpenAI-powered agent classifies each ticket's type and urgency.
+- **Retrieval:** for policy-answerable tickets, a sub-workflow searches the document store and returns the relevant passages.
+- **Grounded response:** the agent drafts its answer from those passages, not from the model's general knowledge.
 
-The RAG grounding step is itself a reliability mechanism — it constrains responses to the business's actual documented policy instead of letting the model answer from general knowledge, which is what prevents confidently wrong answers on policy questions.
+## Workflow structure
 
-## Stack
+- **Main workflow:** Request Triage Agent
+- **Sub-workflow 1:** Policy Document Search
+- **Sub-workflow 2:** Seed Knowledge Base
 
-n8n, pgvector on Neon Postgres, OpenAI
+## Reliability
 
-## Status
+| Rung | How it shows up |
+|---|---|
+| Output validation | Responses are grounded in retrieved policy text, preventing confidently wrong answers |
+| Human fallback | Anything the agent isn't confident is policy-answerable goes to a person |
 
-Complete.
+## Repository contents
+
+- n8n workflow exports (JSON): main workflow and policy search sub-workflow
+- Workflow screenshots
+
+## Running it yourself
+
+1. Import both workflow JSON files into n8n and link the sub-workflow in the main workflow.
+2. Create n8n credentials for PostgreSQL (Neon, with the pgvector extension enabled) and OpenAI. Credentials are **not** included in the exports.
+3. Embed your policy documents into the vector store.
+4. Send test tickets, including some that should be escalated, to confirm routing.
+
+## Limitations
+
+- Answer quality depends on the completeness of the policy documents.
+- Urgency classification is LLM-based; clearly defined urgency rules in the prompt improve consistency.
+
+---
+
+Built by [Alex Idachaba](https://alexidachaba.com) — AI automation for property management operations.
